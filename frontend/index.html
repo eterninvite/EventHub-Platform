@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EventHub — Platformă Management Evenimente</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo" aria-hidden="true">EH</div>
+        <div>
+          <h1>EventHub</h1>
+          <span class="brand-tag">Event Management Suite</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu" aria-label="Navigare principală">
+        <button class="nav-btn active" data-view="events">
+          <span class="nav-icon">📅</span>
+          <span>Evenimente</span>
+          <span class="nav-count" id="navEventsCount">0</span>
+        </button>
+        <button class="nav-btn" data-view="tickets">
+          <span class="nav-icon">🎟️</span>
+          <span>Bilete &amp; Tarife</span>
+          <span class="nav-count" id="navTicketsCount">0</span>
+        </button>
+        <button class="nav-btn" data-view="seating">
+          <span class="nav-icon">💺</span>
+          <span>Hartă Locuri</span>
+        </button>
+        <button class="nav-btn" data-view="agenda">
+          <span class="nav-icon">🗂️</span>
+          <span>Agendă &amp; Track-uri</span>
+        </button>
+        <button class="nav-btn" data-view="notifications">
+          <span class="nav-icon">🔔</span>
+          <span>Notificări</span>
+        </button>
+        <div class="nav-divider"></div>
+        <button class="nav-btn" data-view="patterns">
+          <span class="nav-icon">🧩</span>
+          <span>12 Design Patterns</span>
+          <span class="nav-count">12</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div id="backendStatus" class="status-pill status-checking">
+          <span class="dot"></span> Verificare Java...
+        </div>
+        <p class="sidebar-note">Toate acțiunile execută pattern-urile reale din backend-ul Java (cu fallback offline).</p>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2 id="pageTitle">Dashboard Evenimente</h2>
+          <p id="pageSubtitle">Creează, clonează, publică și gestionează ciclul de viață al evenimentelor tale.</p>
+        </div>
+        <div class="topbar-right">
+          <label class="active-event-picker">
+            <span>Eveniment activ:</span>
+            <select id="globalEventSelect" aria-label="Selectează evenimentul activ"></select>
+          </label>
+          <button id="toggleLogBtn" class="btn btn-outline" type="button">
+            📜 Log Patterns (<span id="logCountBadge">0</span>)
+          </button>
+        </div>
+      </header>
+
+      <!-- KPI Strip -->
+      <section class="kpi-strip" aria-label="Indicatori cheie">
+        <div class="kpi-card">
+          <span class="kpi-label">Evenimente Active</span>
+          <strong class="kpi-value" id="kpiEvents">0</strong>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Bilete Emise</span>
+          <strong class="kpi-value" id="kpiTickets">0</strong>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Venituri Totale</span>
+          <strong class="kpi-value" id="kpiRevenue">0 RON</strong>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Locuri Rezervate</span>
+          <strong class="kpi-value" id="kpiSeats">0</strong>
+        </div>
+      </section>
+
+      <!-- VIEWS -->
+      <main class="views-container">
+
+        <!-- ==================== VIEW 1: EVENIMENTE ==================== -->
+        <section id="view-events" class="view active">
+          <div class="two-col-layout">
+            <!-- Create Event Card (Factory Method + Builder) -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Creează Eveniment Nou</h3>
+                  <p class="card-sub">Folosește <strong>Factory Method</strong> (tip) + <strong>Builder</strong> (opțiuni pas cu pas)</p>
+                </div>
+                <div class="pattern-pills">
+                  <span class="p-pill cat-Creational">Factory Method</span>
+                  <span class="p-pill cat-Creational">Builder</span>
+                </div>
+              </div>
+
+              <form id="createEventForm" class="form-grid">
+                <div class="form-group full">
+                  <label for="evTitle">Titlu eveniment</label>
+                  <input id="evTitle" type="text" required placeholder="ex: Java & Cloud Summit 2026" />
+                </div>
+
+                <div class="form-group">
+                  <label for="evType">Tip eveniment (Factory Method)</label>
+                  <select id="evType">
+                    <option value="conferinta">Conferință</option>
+                    <option value="concert">Concert</option>
+                    <option value="workshop">Workshop</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="evCity">Oraș</label>
+                  <input id="evCity" type="text" required value="București" />
+                </div>
+
+                <div class="form-group">
+                  <label for="evDate">Dată</label>
+                  <input id="evDate" type="date" required value="2026-10-15" />
+                </div>
+
+                <div class="form-group">
+                  <label for="evHall">Sală / Locație</label>
+                  <input id="evHall" type="text" required value="Aula Magna" />
+                </div>
+
+                <div class="form-group">
+                  <label for="evCapacity">Capacitate locuri</label>
+                  <input id="evCapacity" type="number" min="10" max="5000" value="250" />
+                </div>
+
+                <div class="form-group">
+                  <label for="evBasePrice">Preț bilet de bază (RON)</label>
+                  <input id="evBasePrice" type="number" min="0" step="10" value="200" />
+                </div>
+
+                <div class="form-group full checkboxes-row">
+                  <label class="check-label">
+                    <input type="checkbox" id="evCatering" checked />
+                    <span>Include Catering</span>
+                  </label>
+                  <label class="check-label">
+                    <input type="checkbox" id="evLivestream" checked />
+                    <span>Include Livestream HD</span>
+                  </label>
+                </div>
+
+                <div class="form-group full">
+                  <button type="submit" class="btn btn-primary btn-full">+ Construiește &amp; Adaugă Eveniment</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Events List (State + Facade + Prototype) -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Catalog Evenimente</h3>
+                  <p class="card-sub">Gestionează starea (<strong>State</strong>), publicarea rapidă (<strong>Facade</strong>) și clonarea (<strong>Prototype</strong>)</p>
+                </div>
+                <div class="pattern-pills">
+                  <span class="p-pill cat-Behavioral">State</span>
+                  <span class="p-pill cat-Structural">Facade</span>
+                  <span class="p-pill cat-Creational">Prototype</span>
+                </div>
+              </div>
+
+              <div class="toolbar-inline">
+                <input id="eventSearchInput" type="search" class="input-sm" placeholder="Caută după titlu, oraș, tip..." />
+                <select id="eventStatusFilter" class="input-sm">
+                  <option value="ALL">Toate stările</option>
+                  <option value="DRAFT">DRAFT</option>
+                  <option value="PUBLISHED">PUBLISHED</option>
+                  <option value="ONGOING">ONGOING</option>
+                  <option value="COMPLETED">COMPLETED</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
+              </div>
+
+              <div id="eventsList" class="events-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 2: BILETE & TARIFE ==================== -->
+        <section id="view-tickets" class="view">
+          <div class="two-col-layout">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Emite Bilet &amp; Kit Participant</h3>
+                  <p class="card-sub"><strong>Abstract Factory</strong> (Kit) + <strong>Strategy</strong> (Tarif) + <strong>Decorator</strong> (Extraopțiuni)</p>
+                </div>
+                <div class="pattern-pills">
+                  <span class="p-pill cat-Creational">Abstract Factory</span>
+                  <span class="p-pill cat-Behavioral">Strategy</span>
+                  <span class="p-pill cat-Structural">Decorator</span>
+                </div>
+              </div>
+
+              <form id="issueTicketForm" class="form-grid">
+                <div class="form-group full">
+                  <label for="tkGuest">Nume participant</label>
+                  <input id="tkGuest" type="text" required placeholder="ex: Andrei Popescu" />
+                </div>
+
+                <div class="form-group">
+                  <label for="tkTier">Pachet Kit (Abstract Factory)</label>
+                  <select id="tkTier">
+                    <option value="standard">Standard (Bilet General + Ecuson QR)</option>
+                    <option value="vip">VIP (Rândul 1 + Lounge + Ecuson Metalic)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="tkStrategy">Strategie Tarifare (Strategy)</label>
+                  <select id="tkStrategy">
+                    <option value="earlybird">Early Bird (-25%)</option>
+                    <option value="student">Student (-40%)</option>
+                    <option value="grup">Grup 5+ (-20%)</option>
+                    <option value="vip">Tarif VIP (+50%)</option>
+                  </select>
+                </div>
+
+                <div class="form-group full">
+                  <label>Extraopțiuni Bilet (Decorator)</label>
+                  <div class="addon-cards">
+                    <label class="addon-option">
+                      <input type="checkbox" id="addonBackstage" />
+                      <span><strong>Acces Backstage</strong><small>+180 RON</small></span>
+                    </label>
+                    <label class="addon-option">
+                      <input type="checkbox" id="addonDinner" />
+                      <span><strong>Cină Networking</strong><small>+95 RON</small></span>
+                    </label>
+                    <label class="addon-option">
+                      <input type="checkbox" id="addonKit" />
+                      <span><strong>Materiale Workshop</strong><small>+55 RON</small></span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="form-group full price-preview-box">
+                  <div>
+                    <span class="muted-label">Estimare totală bilet</span>
+                    <div id="ticketPriceBreakdown" class="price-breakdown"></div>
+                  </div>
+                  <strong id="ticketTotalPreview" class="price-big">0 RON</strong>
+                </div>
+
+                <div class="form-group full">
+                  <button type="submit" class="btn btn-primary btn-full">🎟️ Emite Bilet &amp; Generează Ecuson</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Bilete Emise &amp; Sincronizare Externă</h3>
+                  <p class="card-sub">Include sincronizare cu sistem extern vechi prin <strong>Adapter</strong></p>
+                </div>
+                <div class="pattern-pills">
+                  <span class="p-pill cat-Structural">Adapter</span>
+                </div>
+              </div>
+
+              <div id="ticketsList" class="tickets-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 3: HARTĂ LOCURI ==================== -->
+        <section id="view-seating" class="view">
+          <div class="two-col-layout">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Hartă Interactivă Sală</h3>
+                  <p class="card-sub">Apasă pe un loc liber pentru a executa <code>ReserveSeatCommand</code> sau apasă <strong>Undo</strong></p>
+                </div>
+                <div class="pattern-pills">
+                  <span class="p-pill cat-Behavioral">Command</span>
+                </div>
+              </div>
+
+              <div class="stage-banner">SCENĂ / PREZENTARE</div>
+              <div id="seatMap" class="seat-map"></div>
+
+              <div class="seat-legend">
+                <span><i class="legend-dot free"></i> Liber</span>
+                <span><i class="legend-dot taken"></i> Rezervat</span>
+              </div>
+
+              <div class="seat-actions">
+                <button id="undoSeatBtn" class="btn btn-warning" type="button">↩️ Undo Ultima Rezervare</button>
+                <button id="clearSeatsBtn" class="btn btn-outline" type="button">Resetează Sala</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Istoric Comenzi Rezervare (Command Stack)</h3>
+                  <p class="card-sub">Fiecare rezervare este încapsulată ca obiect Command cu suport <code>undo()</code></p>
+                </div>
+              </div>
+              <div id="seatHistoryList" class="history-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 4: AGENDĂ & TRACK-URI ==================== -->
+        <section id="view-agenda" class="view">
+          <div class="two-col-layout">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Adaugă Sesiune sau Track</h3>
+                  <p class="card-sub">Structură arborescentă gestionată uniform prin <strong>Composite</strong></p>
+                </div>
+                <div class="pattern-pills">
+                  <span class="p-pill cat-Structural">Composite</span>
+                </div>
+              </div>
+
+              <form id="addSessionForm" class="form-grid">
+                <div class="form-group full">
+                  <label for="agTrackSelect">Track destinație</label>
+                  <select id="agTrackSelect"></select>
+                </div>
+                <div class="form-group">
+                  <label for="agSessionName">Titlu sesiune</label>
+                  <input id="agSessionName" type="text" required placeholder="ex: Workshop Microservicii" />
+                </div>
+                <div class="form-group">
+                  <label for="agSessionMinutes">Durată (minute)</label>
+                  <input id="agSessionMinutes" type="number" min="10" max="240" value="45" required />
+                </div>
+                <div class="form-group full">
+                  <button type="submit" class="btn btn-primary btn-full">+ Adaugă Sesiune în Track</button>
+                </div>
+              </form>
+
+              <hr class="divider" />
+
+              <form id="addTrackForm" class="form-inline-row">
+                <input id="agNewTrackName" type="text" required placeholder="Nume track nou (ex: Track Securitate)" />
+                <button type="submit" class="btn btn-outline">+ Track Nou</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Arbore Agendă Eveniment</h3>
+                  <p class="card-sub">Durata fiecărui track și durata totală se calculează recursiv</p>
+                </div>
+                <span id="agendaTotalBadge" class="badge-total">0 min</span>
+              </div>
+
+              <div id="agendaTree" class="agenda-tree"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 5: NOTIFICĂRI ==================== -->
+        <section id="view-notifications" class="view">
+          <div class="two-col-layout">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Trimite Anunț către Participanți</h3>
+                  <p class="card-sub">Notificare automată pe toate canalele abonate prin <strong>Observer</strong></p>
+                </div>
+                <div class="pattern-pills">
+                  <span class="p-pill cat-Behavioral">Observer</span>
+                </div>
+              </div>
+
+              <form id="sendNotificationForm" class="form-grid">
+                <div class="form-group full">
+                  <label for="notifMessage">Mesaj actualizare agendă / sală</label>
+                  <textarea id="notifMessage" rows="3" required>Sesiunea 'Java 21' s-a mutat în Sala B la ora 14:30.</textarea>
+                </div>
+                <div class="form-group full">
+                  <button type="submit" class="btn btn-primary btn-full">📢 Publică Notificare către Abonați</button>
+                </div>
+              </form>
+
+              <hr class="divider" />
+
+              <h4 class="sub-heading">Abonați activi (Observers)</h4>
+              <div id="subscribersList" class="subscribers-list"></div>
+
+              <form id="addSubscriberForm" class="form-inline-row" style="margin-top: 12px;">
+                <select id="subChannel">
+                  <option value="Email">Email</option>
+                  <option value="SMS">SMS</option>
+                  <option value="Push App">Push App</option>
+                </select>
+                <input id="subTarget" type="text" required placeholder="ex: vlad@eventhub.ro sau @vlad" />
+                <button type="submit" class="btn btn-outline">+ Abonează</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Jurnal Livrări Notificări</h3>
+                  <p class="card-sub">Toți observatorii primesc mesajul instant, fără cuplare directă</p>
+                </div>
+              </div>
+              <div id="notificationLog" class="history-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 6: 12 DESIGN PATTERNS ==================== -->
+        <section id="view-patterns" class="view">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>Cele 12 Design Patterns integrate în EventHub (fără Singleton)</h3>
+                <p class="card-sub">Explorează rolul fiecărui pattern, când să îl folosești vs. când să îl eviți și codul Java comentat</p>
+              </div>
+            </div>
+
+            <div class="patterns-toolbar">
+              <div class="category-filters">
+                <button class="filter-btn active" data-cat="all">Toate (12)</button>
+                <button class="filter-btn" data-cat="Creational">Creational (4)</button>
+                <button class="filter-btn" data-cat="Structural">Structural (4)</button>
+                <button class="filter-btn" data-cat="Behavioral">Behavioral (4)</button>
+              </div>
+              <input id="patternSearchInput" type="search" class="input-sm" placeholder="Caută pattern sau funcționalitate..." />
+            </div>
+
+            <div id="patternsCatalogGrid" class="patterns-catalog-grid"></div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Slide-over Live Pattern Activity Drawer -->
+  <aside id="logDrawer" class="log-drawer" aria-hidden="true">
+    <div class="log-drawer-header">
+      <div>
+        <h3>Live Design Pattern Inspector</h3>
+        <small>Urmărește în timp real ce pattern-uri rulează în spatele aplicației</small>
+      </div>
+      <div class="drawer-actions">
+        <button id="clearActivityLogBtn" class="btn btn-xs btn-outline" type="button">Curăță</button>
+        <button id="closeLogBtn" class="btn btn-xs btn-outline" type="button">✕</button>
+      </div>
+    </div>
+    <div id="activityLogList" class="activity-log-list"></div>
+  </aside>
+
+  <!-- Clone Modal (Prototype Pattern) -->
+  <div id="cloneModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="cloneModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="cloneModalTitle">Clonează Eveniment (Prototype)</h3>
+        <button id="closeCloneModal" class="btn btn-xs btn-outline" type="button">✕</button>
+      </div>
+      <p class="card-sub">Duplică șablonul evenimentului (inclusiv agenda) într-un oraș și o dată nouă, păstrând originalul intact.</p>
+      <form id="cloneEventForm" class="form-grid" style="margin-top: 12px;">
+        <input type="hidden" id="cloneSourceId" />
+        <div class="form-group full">
+          <label for="cloneCity">Oraș nou</label>
+          <input id="cloneCity" type="text" required value="Cluj-Napoca" />
+        </div>
+        <div class="form-group full">
+          <label for="cloneDate">Dată nouă</label>
+          <input id="cloneDate" type="date" required value="2026-11-20" />
+        </div>
+        <div class="form-group full modal-footer">
+          <button type="button" id="cancelCloneBtn" class="btn btn-outline">Renunță</button>
+          <button type="submit" class="btn btn-primary">Clonează Ediție</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
