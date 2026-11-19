@@ -37,15 +37,15 @@ public class PrototypePattern {
     // DESIGN PATTERN: Prototype (Creational)
     public static List<String> run(String input) {
         List<String> logs = new ArrayList<>();
-        String raw = (input == null || input.isBlank()) ? "Cluj-Napoca | 15 Noiembrie 2026" : input.trim();
+        String raw = (input == null || input.isBlank()) ? "Bălți | 15 Noiembrie 2026" : input.trim();
         String[] parts = raw.split("\\|");
-        String newCity = parts.length > 0 && !parts[0].isBlank() ? parts[0].trim() : "Cluj-Napoca";
+        String newCity = parts.length > 0 && !parts[0].isBlank() ? parts[0].trim() : "Bălți";
         String newDate = parts.length > 1 && !parts[1].isBlank() ? parts[1].trim() : "15 Noiembrie 2026";
 
         EventTemplate original = new EventTemplate(
-                "EventHub DevConf",
-                "București",
-                "10 Octombrie 2026",
+                "Moldova Tech Summit",
+                "Chișinău",
+                "15 Octombrie 2026",
                 List.of("Keynote", "Workshop Cloud", "Panel Q&A")
         );
         logs.add("[Prototype] Șablon original: " + original.describe());

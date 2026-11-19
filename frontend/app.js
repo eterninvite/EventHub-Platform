@@ -145,6 +145,15 @@ function formatMdl(amount) {
   return `${num.toLocaleString("ro-RO", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} MDL`;
 }
 
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ===================== SINCRONIZARE SILENȚIOASĂ CU SERVERUL =====================
 async function detectBackend() {
   if (window.location.protocol === "file:") {
@@ -346,15 +355,15 @@ function renderEventsList() {
     card.innerHTML = `
       <div class="event-card-top">
         <div>
-          <h4 class="event-title">${ev.title}</h4>
+          <h4 class="event-title">${escapeHtml(ev.title)}</h4>
           <div class="event-meta">
-            <span>${ev.typeLabel}</span>
+            <span>${escapeHtml(ev.typeLabel)}</span>
             <span class="meta-sep">•</span>
-            <span>${ev.city}, ${ev.hall}</span>
+            <span>${escapeHtml(ev.city)}, ${escapeHtml(ev.hall)}</span>
             <span class="meta-sep">•</span>
-            <span>${ev.date}</span>
+            <span>${escapeHtml(ev.date)}</span>
             <span class="meta-sep">•</span>
-            <span>${ev.capacity} locuri</span>
+            <span>${Number(ev.capacity)} locuri</span>
             <span class="meta-sep">•</span>
             <span><strong>${formatMdl(ev.basePrice)}</strong></span>
             ${extrasText ? `<span class="meta-sep">•</span><span>${extrasText}</span>` : ""}
@@ -362,7 +371,7 @@ function renderEventsList() {
         </div>
         <span class="state-badge state-${ev.state}">${STATE_LABELS[ev.state] || ev.state}</span>
       </div>
-      <div class="event-equipment"><strong>Logistică configurată:</strong> ${ev.equipment}</div>
+      <div class="event-equipment"><strong>Logistică configurată:</strong> ${escapeHtml(ev.equipment)}</div>
       <div class="event-actions">
         <button class="btn btn-xs btn-outline" data-action="select" data-id="${ev.id}">
           ${ev.id === state.activeEventId ? "Selectat" : "Selectează"}
@@ -453,6 +462,12 @@ function closeCloneModal() {
 }
 document.getElementById("closeCloneModal").addEventListener("click", closeCloneModal);
 document.getElementById("cancelCloneBtn").addEventListener("click", closeCloneModal);
+document.getElementById("cloneModal").addEventListener("click", (e) => {
+  if (e.target.id === "cloneModal") closeCloneModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeCloneModal();
+});
 
 document.getElementById("cloneEventForm").addEventListener("submit", (e) => {
   e.preventDefault();
@@ -589,18 +604,18 @@ function renderTicketsList() {
     item.className = "ticket-item";
     item.innerHTML = `
       <div class="ticket-item-top">
-        <strong>${tk.guest} — ${tk.eventTitle}</strong>
+        <strong>${escapeHtml(tk.guest)} — ${escapeHtml(tk.eventTitle)}</strong>
         <span class="badge-total">${formatMdl(tk.totalPrice)}</span>
       </div>
       <div class="ticket-details">
-        <div><strong>Pachet:</strong> ${tk.ticketLabel} • ${tk.badgeLabel}</div>
-        <div><strong>Tarif:</strong> ${tk.strategyLabel} • <strong>Extraopțiuni:</strong> ${
-          tk.addons.length ? tk.addons.join(", ") : "Niciuna"
+        <div><strong>Pachet:</strong> ${escapeHtml(tk.ticketLabel)} • ${escapeHtml(tk.badgeLabel)}</div>
+        <div><strong>Tarif:</strong> ${escapeHtml(tk.strategyLabel)} • <strong>Extraopțiuni:</strong> ${
+          tk.addons.length ? escapeHtml(tk.addons.join(", ")) : "Niciuna"
         }</div>
       </div>
       ${
         tk.legacyReceipt
-          ? `<div class="legacy-receipt">Sincronizat extern: ${tk.legacyReceipt}</div>`
+          ? `<div class="legacy-receipt">Sincronizat extern: ${escapeHtml(tk.legacyReceipt)}</div>`
           : `<button class="btn btn-xs btn-outline" data-sync-ticket="${tk.id}">Sincronizează cu sistemul extern</button>`
       }
     `;
@@ -731,14 +746,14 @@ function renderAgenda() {
     box.className = "track-box";
     box.innerHTML = `
       <div class="track-header">
-        <span>${tr.name}</span>
+        <span>${escapeHtml(tr.name)}</span>
         <span>${trackMinutes} min</span>
       </div>
       <ul class="track-sessions">
         ${
           tr.sessions.length
             ? tr.sessions
-                .map((s) => `<li><span>${s.name}</span><strong>${s.minutes} min</strong></li>`)
+                .map((s) => `<li><span>${escapeHtml(s.name)}</span><strong>${Number(s.minutes)} min</strong></li>`)
                 .join("")
             : '<li style="color:#64748b">Nicio sesiune programată în această secțiune.</li>'
         }
@@ -792,7 +807,7 @@ function renderNotifications() {
   state.subscribers.forEach((sub) => {
     const chip = document.createElement("span");
     chip.className = "sub-chip";
-    chip.innerHTML = `<strong>${sub.channel}:</strong> ${sub.target} <button type="button" data-remove-sub="${sub.id}" title="Elimină">×</button>`;
+    chip.innerHTML = `<strong>${escapeHtml(sub.channel)}:</strong> ${escapeHtml(sub.target)} <button type="button" data-remove-sub="${sub.id}" title="Elimină">×</button>`;
     subsEl.appendChild(chip);
   });
 
@@ -805,9 +820,9 @@ function renderNotifications() {
       const div = document.createElement("div");
       div.className = "history-item";
       div.innerHTML = `
-        <span class="history-time">${entry.time} • ${entry.eventTitle}</span>
-        <strong>Anunț:</strong> ${entry.message}
-        <div style="margin-top:6px;color:#475569;">${entry.deliveries.map((d) => `<div>• ${d}</div>`).join("")}</div>
+        <span class="history-time">${escapeHtml(entry.time)} • ${escapeHtml(entry.eventTitle)}</span>
+        <strong>Anunț:</strong> ${escapeHtml(entry.message)}
+        <div style="margin-top:6px;color:#475569;">${entry.deliveries.map((d) => `<div>• ${escapeHtml(d)}</div>`).join("")}</div>
       `;
       logEl.appendChild(div);
     });

@@ -48,10 +48,10 @@ public class StrategyPattern {
     // DESIGN PATTERN: Strategy (Behavioral)
     public static List<String> run(String input) {
         List<String> logs = new ArrayList<>();
-        String raw = (input == null || input.isBlank()) ? "earlybird:200" : input.trim();
+        String raw = (input == null || input.isBlank()) ? "earlybird:450" : input.trim();
         String[] parts = raw.split(":", 2);
         String key = parts[0].trim().toLowerCase();
-        double basePrice = 200.0;
+        double basePrice = 450.0;
         if (parts.length > 1) {
             try { basePrice = Double.parseDouble(parts[1].trim()); } catch (NumberFormatException ignored) {}
         }
@@ -65,9 +65,9 @@ public class StrategyPattern {
         TicketPriceCalculator calculator = new TicketPriceCalculator(strategy);
         double finalPrice = calculator.compute(basePrice);
 
-        logs.add("[Strategy] Preț de bază bilet: " + basePrice + " RON.");
+        logs.add("[Strategy] Preț de bază bilet: " + basePrice + " MDL.");
         logs.add("[Strategy] Strategie injectată la runtime: " + calculator.getStrategyName() + ".");
-        logs.add("[Strategy] Tarif final calculat: " + String.format("%.2f", finalPrice) + " RON.");
+        logs.add("[Strategy] Tarif final calculat: " + String.format("%.2f", finalPrice) + " MDL.");
         return logs;
     }
 }

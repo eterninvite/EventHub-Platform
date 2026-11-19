@@ -61,9 +61,9 @@ public class ObserverPattern {
                 : input.trim();
 
         EventScheduleTopic topic = new EventScheduleTopic();
-        topic.subscribe(new EmailSubscriber("maria.ionescu@eventhub.ro"));
-        topic.subscribe(new SmsSubscriber("+40 722 000 111"));
-        topic.subscribe(new AppPushSubscriber("alex_dev"));
+        topic.subscribe(new EmailSubscriber("maria.rusu@eventhub.md"));
+        topic.subscribe(new SmsSubscriber("+373 69 000 111"));
+        topic.subscribe(new AppPushSubscriber("alex_md"));
 
         logs.add("[Observer] 3 abonați înregistrați pe canalul de modificări agendă.");
         logs.add("[Observer] Publicare actualizare: \"" + update + "\"");

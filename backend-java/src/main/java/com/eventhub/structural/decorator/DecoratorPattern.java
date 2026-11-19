@@ -16,7 +16,7 @@ public class DecoratorPattern {
     // DESIGN PATTERN: Decorator (Structural)
     static class BaseTicket implements EventTicket {
         public String getDescription() { return "Bilet Acces General"; }
-        public double getPrice() { return 120.0; }
+        public double getPrice() { return 450.0; }
     }
 
     // DESIGN PATTERN: Decorator (Structural)
@@ -29,21 +29,21 @@ public class DecoratorPattern {
     static class BackstageDecorator extends TicketDecorator {
         BackstageDecorator(EventTicket wrapped) { super(wrapped); }
         public String getDescription() { return wrapped.getDescription() + " + Acces Backstage"; }
-        public double getPrice() { return wrapped.getPrice() + 180.0; }
+        public double getPrice() { return wrapped.getPrice() + 350.0; }
     }
 
     // DESIGN PATTERN: Decorator (Structural)
     static class NetworkingDinnerDecorator extends TicketDecorator {
         NetworkingDinnerDecorator(EventTicket wrapped) { super(wrapped); }
         public String getDescription() { return wrapped.getDescription() + " + Cină Networking"; }
-        public double getPrice() { return wrapped.getPrice() + 95.0; }
+        public double getPrice() { return wrapped.getPrice() + 220.0; }
     }
 
     // DESIGN PATTERN: Decorator (Structural)
     static class WorkshopKitDecorator extends TicketDecorator {
         WorkshopKitDecorator(EventTicket wrapped) { super(wrapped); }
         public String getDescription() { return wrapped.getDescription() + " + Materiale Workshop"; }
-        public double getPrice() { return wrapped.getPrice() + 55.0; }
+        public double getPrice() { return wrapped.getPrice() + 120.0; }
     }
 
     // DESIGN PATTERN: Decorator (Structural)
@@ -52,22 +52,22 @@ public class DecoratorPattern {
         String raw = (input == null || input.isBlank()) ? "backstage, dinner, kit" : input.toLowerCase();
 
         EventTicket ticket = new BaseTicket();
-        logs.add("[Decorator] Bilet de bază: " + ticket.getDescription() + " (" + ticket.getPrice() + " RON).");
+        logs.add("[Decorator] Bilet de bază: " + ticket.getDescription() + " (" + ticket.getPrice() + " MDL).");
 
         if (raw.contains("backstage")) {
             ticket = new BackstageDecorator(ticket);
-            logs.add("[Decorator] + Împachetat cu BackstageDecorator (+180 RON).");
+            logs.add("[Decorator] + Împachetat cu BackstageDecorator (+350 MDL).");
         }
         if (raw.contains("dinner") || raw.contains("cina")) {
             ticket = new NetworkingDinnerDecorator(ticket);
-            logs.add("[Decorator] + Împachetat cu NetworkingDinnerDecorator (+95 RON).");
+            logs.add("[Decorator] + Împachetat cu NetworkingDinnerDecorator (+220 MDL).");
         }
         if (raw.contains("kit") || raw.contains("workshop")) {
             ticket = new WorkshopKitDecorator(ticket);
-            logs.add("[Decorator] + Împachetat cu WorkshopKitDecorator (+55 RON).");
+            logs.add("[Decorator] + Împachetat cu WorkshopKitDecorator (+120 MDL).");
         }
 
-        logs.add("[Decorator] Bilet final: " + ticket.getDescription() + " | Total: " + ticket.getPrice() + " RON.");
+        logs.add("[Decorator] Bilet final: " + ticket.getDescription() + " | Total: " + ticket.getPrice() + " MDL.");
         return logs;
     }
 }
