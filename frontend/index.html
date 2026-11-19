@@ -233,19 +233,29 @@
 
               <form id="issueTicketForm" class="form-grid">
                 <div class="form-group full">
+                  <label for="tkEventSelect">Eveniment</label>
+                  <select id="tkEventSelect" required></select>
+                </div>
+
+                <div class="form-group full">
+                  <label for="tkHall">Sală / Locație</label>
+                  <select id="tkHall" required></select>
+                </div>
+
+                <div class="form-group full">
                   <label for="tkGuest">Nume participant</label>
                   <input id="tkGuest" type="text" required placeholder="ex: Andrei Rusu" />
                 </div>
 
-                <div class="form-group">
+                <div class="form-group full">
                   <label for="tkTier">Pachet acces &amp; ecuson</label>
                   <select id="tkTier">
-                    <option value="standard">Standard (Acces General + Ecuson QR)</option>
-                    <option value="vip">VIP (Rândul 1 + Lounge + Ecuson Metalic)</option>
+                    <option value="standard">Standard — Acces General + Ecuson QR</option>
+                    <option value="vip">VIP — Rândul 1 + Lounge + Ecuson Metalic</option>
                   </select>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group full">
                   <label for="tkStrategy">Categorie tarif</label>
                   <select id="tkStrategy">
                     <option value="earlybird">Early Bird (-25%)</option>
@@ -259,22 +269,31 @@
                   <label>Extraopțiuni disponibile</label>
                   <div class="addon-cards">
                     <label class="addon-option">
-                      <input type="checkbox" id="addonBackstage" />
-                      <span><strong>Acces Backstage</strong><small>+350 MDL</small></span>
+                      <span class="addon-left">
+                        <input type="checkbox" id="addonBackstage" />
+                        <span class="addon-title">Acces Backstage</span>
+                      </span>
+                      <span class="addon-price">+350 MDL</span>
                     </label>
                     <label class="addon-option">
-                      <input type="checkbox" id="addonDinner" />
-                      <span><strong>Cină Networking</strong><small>+220 MDL</small></span>
+                      <span class="addon-left">
+                        <input type="checkbox" id="addonDinner" />
+                        <span class="addon-title">Cină Networking</span>
+                      </span>
+                      <span class="addon-price">+220 MDL</span>
                     </label>
                     <label class="addon-option">
-                      <input type="checkbox" id="addonKit" />
-                      <span><strong>Materiale Workshop</strong><small>+120 MDL</small></span>
+                      <span class="addon-left">
+                        <input type="checkbox" id="addonKit" />
+                        <span class="addon-title">Materiale Workshop</span>
+                      </span>
+                      <span class="addon-price">+120 MDL</span>
                     </label>
                   </div>
                 </div>
 
                 <div class="form-group full price-preview-box">
-                  <div>
+                  <div class="price-preview-info">
                     <span class="muted-label">Total estimat</span>
                     <div id="ticketPriceBreakdown" class="price-breakdown"></div>
                   </div>
@@ -291,8 +310,12 @@
               <div class="card-header">
                 <div>
                   <h3>Bilete Emise</h3>
-                  <p class="card-sub">Listă completă cu biletele generate și sincronizarea cu sistemul extern de ticketing.</p>
+                  <p class="card-sub">Verifică biletele emise filtrate după eveniment și sincronizează-le extern.</p>
                 </div>
+              </div>
+
+              <div class="toolbar-inline">
+                <select id="ticketFilterEvent" aria-label="Filtrează bilete după eveniment"></select>
               </div>
 
               <div id="ticketsList" class="tickets-list"></div>
@@ -307,11 +330,15 @@
               <div class="card-header">
                 <div>
                   <h3>Hartă Sală</h3>
-                  <p class="card-sub">Selectează un loc disponibil pentru rezervare sau anulează ultima acțiune.</p>
+                  <p class="card-sub">Selectează evenimentul și apasă pe un loc disponibil pentru rezervare.</p>
                 </div>
               </div>
 
-              <div class="stage-banner">SCENĂ PRINCIPALĂ</div>
+              <div class="toolbar-inline">
+                <select id="seatEventSelect" aria-label="Selectează eveniment pentru harta sălii"></select>
+              </div>
+
+              <div id="stageBanner" class="stage-banner">SCENĂ PRINCIPALĂ</div>
               <div id="seatMap" class="seat-map"></div>
 
               <div class="seat-legend">
@@ -350,8 +377,16 @@
 
               <form id="addSessionForm" class="form-grid">
                 <div class="form-group full">
+                  <label for="agEventSelect">Eveniment</label>
+                  <select id="agEventSelect" required></select>
+                </div>
+                <div class="form-group full">
                   <label for="agTrackSelect">Secțiune / Track</label>
                   <select id="agTrackSelect"></select>
+                </div>
+                <div class="form-group full">
+                  <label for="agSessionHall">Sală sesiune</label>
+                  <select id="agSessionHall"></select>
                 </div>
                 <div class="form-group">
                   <label for="agSessionName">Titlu sesiune</label>
@@ -401,6 +436,10 @@
 
               <form id="sendNotificationForm" class="form-grid">
                 <div class="form-group full">
+                  <label for="notifEventSelect">Eveniment</label>
+                  <select id="notifEventSelect" required></select>
+                </div>
+                <div class="form-group full">
                   <label for="notifMessage">Mesaj anunț</label>
                   <textarea id="notifMessage" rows="3" required>Sesiunea de după-amiază începe la ora 14:30 în Sala Mare.</textarea>
                 </div>
@@ -429,8 +468,11 @@
               <div class="card-header">
                 <div>
                   <h3>Jurnal Notificări Trimise</h3>
-                  <p class="card-sub">Istoricul mesajelor distribuite pe toate canalele active.</p>
+                  <p class="card-sub">Verifică istoricul anunțurilor filtrate după eveniment.</p>
                 </div>
+              </div>
+              <div class="toolbar-inline">
+                <select id="notifFilterEvent" aria-label="Filtrează notificări după eveniment"></select>
               </div>
               <div id="notificationLog" class="history-list"></div>
             </div>

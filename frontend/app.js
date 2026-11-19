@@ -42,16 +42,16 @@ function createDefaultState() {
             id: "tr-1",
             name: "Sesiuni Dimineață",
             sessions: [
-              { id: "s-1", name: "Keynote Deschidere", minutes: 45 },
-              { id: "s-2", name: "Arhitectură Software Modernă", minutes: 50 }
+              { id: "s-1", name: "Keynote Deschidere", hall: "Palatul Republicii", minutes: 45 },
+              { id: "s-2", name: "Arhitectură Software Modernă", hall: "Sala B", minutes: 50 }
             ]
           },
           {
             id: "tr-2",
             name: "Sesiuni După-Amiază",
             sessions: [
-              { id: "s-3", name: "Workshop Sisteme Distribuite", minutes: 60 },
-              { id: "s-4", name: "Networking & Q&A", minutes: 30 }
+              { id: "s-3", name: "Workshop Sisteme Distribuite", hall: "Sala Workshop", minutes: 60 },
+              { id: "s-4", name: "Networking & Q&A", hall: "Lounge VIP", minutes: 30 }
             ]
           }
         ]
@@ -91,6 +91,7 @@ function createDefaultState() {
         eventId: "ev-1",
         eventTitle: "Moldova Tech Summit 2026",
         eventCode: "CONF-2026",
+        hall: "Palatul Republicii",
         guest: "Elena Moraru",
         tier: "vip",
         ticketLabel: "Bilet VIP (Rândul 1 + Lounge)",
@@ -112,6 +113,8 @@ function createDefaultState() {
 
 let state = loadState();
 let backendAvailable = false;
+let ticketFilterEventId = state.activeEventId;
+let notifFilterEventId = state.activeEventId;
 
 function loadState() {
   try {
@@ -229,16 +232,68 @@ function renderAll() {
   renderNotifications();
 }
 
-function renderGlobalPicker() {
-  const select = document.getElementById("globalEventSelect");
-  select.innerHTML = "";
+function getHallOptionsForEvent(ev) {
+  const base = ev && ev.hall ? [ev.hall] : [];
+  const defaults = ["Sala Mare", "Sala B", "Sala Workshop", "Lounge VIP"];
+  return [...new Set([...base, ...defaults])];
+}
+
+function populateHallSelect(selectEl, ev) {
+  if (!selectEl) return;
+  const prev = selectEl.value;
+  const halls = getHallOptionsForEvent(ev);
+  selectEl.innerHTML = "";
+  halls.forEach((h) => {
+    const opt = document.createElement("option");
+    opt.value = h;
+    opt.textContent = h;
+    selectEl.appendChild(opt);
+  });
+  if (prev && halls.includes(prev)) {
+    selectEl.value = prev;
+  } else if (ev && ev.hall) {
+    selectEl.value = ev.hall;
+  }
+}
+
+function populateEventSelect(selectEl, selectedId, includeAllOption = false) {
+  if (!selectEl) return;
+  selectEl.innerHTML = "";
+  if (includeAllOption) {
+    const allOpt = document.createElement("option");
+    allOpt.value = "ALL";
+    allOpt.textContent = "Toate evenimentele";
+    if (selectedId === "ALL") allOpt.selected = true;
+    selectEl.appendChild(allOpt);
+  }
   state.events.forEach((ev) => {
     const opt = document.createElement("option");
     opt.value = ev.id;
     opt.textContent = `${ev.title} (${ev.city})`;
-    if (ev.id === state.activeEventId) opt.selected = true;
-    select.appendChild(opt);
+    if (ev.id === selectedId) opt.selected = true;
+    selectEl.appendChild(opt);
   });
+}
+
+function renderGlobalPicker() {
+  populateEventSelect(document.getElementById("globalEventSelect"), state.activeEventId);
+  populateEventSelect(document.getElementById("tkEventSelect"), state.activeEventId);
+  populateEventSelect(document.getElementById("seatEventSelect"), state.activeEventId);
+  populateEventSelect(document.getElementById("agEventSelect"), state.activeEventId);
+  populateEventSelect(document.getElementById("notifEventSelect"), state.activeEventId);
+
+  if (ticketFilterEventId !== "ALL" && !state.events.some((e) => e.id === ticketFilterEventId)) {
+    ticketFilterEventId = state.activeEventId;
+  }
+  if (notifFilterEventId !== "ALL" && !state.events.some((e) => e.id === notifFilterEventId)) {
+    notifFilterEventId = state.activeEventId;
+  }
+  populateEventSelect(document.getElementById("ticketFilterEvent"), ticketFilterEventId, true);
+  populateEventSelect(document.getElementById("notifFilterEvent"), notifFilterEventId, true);
+
+  const activeEv = getActiveEvent();
+  populateHallSelect(document.getElementById("tkHall"), activeEv);
+  populateHallSelect(document.getElementById("agSessionHall"), activeEv);
 }
 
 function renderKPIs() {
@@ -497,7 +552,8 @@ document.getElementById("cloneEventForm").addEventListener("submit", (e) => {
 
 // ===================== 2. BILETE & TARIFE =====================
 function computeTicketQuote() {
-  const ev = getActiveEvent();
+  const selectedId = document.getElementById("tkEventSelect").value || state.activeEventId;
+  const ev = state.events.find((e) => e.id === selectedId) || getActiveEvent();
   const base = ev ? Number(ev.basePrice) : 450;
   const strategyKey = document.getElementById("tkStrategy").value;
   const strategies = {
@@ -549,9 +605,11 @@ function renderTicketPreview() {
 
 document.getElementById("issueTicketForm").addEventListener("submit", (e) => {
   e.preventDefault();
-  const ev = getActiveEvent();
+  const selectedEventId = document.getElementById("tkEventSelect").value || state.activeEventId;
+  const ev = state.events.find((item) => item.id === selectedEventId) || getActiveEvent();
   if (!ev) return;
 
+  const hall = document.getElementById("tkHall").value || ev.hall;
   const guest = document.getElementById("tkGuest").value.trim();
   const tier = document.getElementById("tkTier").value;
   const q = computeTicketQuote();
@@ -562,6 +620,7 @@ document.getElementById("issueTicketForm").addEventListener("submit", (e) => {
     eventId: ev.id,
     eventTitle: ev.title,
     eventCode: ev.code,
+    hall,
     guest,
     tier,
     ticketLabel: isVip ? "Bilet VIP (Rândul 1 + Lounge)" : "Bilet Standard (Acces General)",
@@ -573,6 +632,8 @@ document.getElementById("issueTicketForm").addEventListener("submit", (e) => {
   };
 
   state.tickets.unshift(ticketObj);
+  state.activeEventId = ev.id;
+  ticketFilterEventId = ev.id;
   saveState();
 
   syncOperation("abstract-factory", `${tier}:${guest}`);
@@ -593,13 +654,18 @@ document.getElementById("issueTicketForm").addEventListener("submit", (e) => {
 
 function renderTicketsList() {
   const container = document.getElementById("ticketsList");
-  if (state.tickets.length === 0) {
-    container.innerHTML = '<div class="empty-msg">Nu există bilete emise momentan.</div>';
+  const filtered =
+    ticketFilterEventId === "ALL"
+      ? state.tickets
+      : state.tickets.filter((tk) => tk.eventId === ticketFilterEventId);
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-msg">Nu există bilete emise pentru evenimentul selectat.</div>';
     return;
   }
 
   container.innerHTML = "";
-  state.tickets.forEach((tk) => {
+  filtered.forEach((tk) => {
     const item = document.createElement("div");
     item.className = "ticket-item";
     item.innerHTML = `
@@ -608,6 +674,7 @@ function renderTicketsList() {
         <span class="badge-total">${formatMdl(tk.totalPrice)}</span>
       </div>
       <div class="ticket-details">
+        <div><strong>Sală:</strong> ${escapeHtml(tk.hall || "Sala principală")}</div>
         <div><strong>Pachet:</strong> ${escapeHtml(tk.ticketLabel)} • ${escapeHtml(tk.badgeLabel)}</div>
         <div><strong>Tarif:</strong> ${escapeHtml(tk.strategyLabel)} • <strong>Extraopțiuni:</strong> ${
           tk.addons.length ? escapeHtml(tk.addons.join(", ")) : "Niciuna"
@@ -644,7 +711,12 @@ function renderSeatMap() {
   const ev = getActiveEvent();
   const mapEl = document.getElementById("seatMap");
   const histEl = document.getElementById("seatHistoryList");
+  const stageBanner = document.getElementById("stageBanner");
   if (!ev) return;
+
+  if (stageBanner) {
+    stageBanner.textContent = `SCENĂ PRINCIPALĂ — ${ev.hall.toUpperCase()}`;
+  }
 
   mapEl.innerHTML = "";
   SEAT_ROWS.forEach((row) => {
@@ -753,7 +825,12 @@ function renderAgenda() {
         ${
           tr.sessions.length
             ? tr.sessions
-                .map((s) => `<li><span>${escapeHtml(s.name)}</span><strong>${Number(s.minutes)} min</strong></li>`)
+                .map(
+                  (s) =>
+                    `<li><span>${escapeHtml(s.name)}${
+                      s.hall ? ` <small style="color:#64748b;">• ${escapeHtml(s.hall)}</small>` : ""
+                    }</span><strong>${Number(s.minutes)} min</strong></li>`
+                )
                 .join("")
             : '<li style="color:#64748b">Nicio sesiune programată în această secțiune.</li>'
         }
@@ -767,36 +844,41 @@ function renderAgenda() {
 
 document.getElementById("addSessionForm").addEventListener("submit", (e) => {
   e.preventDefault();
-  const ev = getActiveEvent();
+  const selectedEvId = document.getElementById("agEventSelect").value || state.activeEventId;
+  const ev = state.events.find((item) => item.id === selectedEvId) || getActiveEvent();
   if (!ev) return;
 
   const trackId = document.getElementById("agTrackSelect").value;
+  const hall = document.getElementById("agSessionHall").value || ev.hall;
   const name = document.getElementById("agSessionName").value.trim();
   const minutes = parseInt(document.getElementById("agSessionMinutes").value, 10) || 45;
 
   const track = ev.agenda.find((t) => t.id === trackId) || ev.agenda[0];
   if (!track) return;
 
-  track.sessions.push({ id: "s-" + Date.now(), name, minutes });
+  track.sessions.push({ id: "s-" + Date.now(), name, hall, minutes });
+  state.activeEventId = ev.id;
   saveState();
 
   syncOperation("composite", `${name}:${minutes}`);
   document.getElementById("agSessionName").value = "";
-  renderAgenda();
-  showToast(`Sesiunea „${name}” (${minutes} min) a fost adăugată.`);
+  renderAll();
+  showToast(`Sesiunea „${name}” (${minutes} min, ${hall}) a fost adăugată.`);
 });
 
 document.getElementById("addTrackForm").addEventListener("submit", (e) => {
   e.preventDefault();
-  const ev = getActiveEvent();
+  const selectedEvId = document.getElementById("agEventSelect").value || state.activeEventId;
+  const ev = state.events.find((item) => item.id === selectedEvId) || getActiveEvent();
   if (!ev) return;
   const trackName = document.getElementById("agNewTrackName").value.trim();
   if (!trackName) return;
 
   ev.agenda.push({ id: "tr-" + Date.now(), name: trackName, sessions: [] });
+  state.activeEventId = ev.id;
   saveState();
   document.getElementById("agNewTrackName").value = "";
-  renderAgenda();
+  renderAll();
   showToast(`Secțiunea „${trackName}” a fost adăugată.`);
 });
 
@@ -812,11 +894,16 @@ function renderNotifications() {
   });
 
   const logEl = document.getElementById("notificationLog");
-  if (state.notificationLogs.length === 0) {
-    logEl.innerHTML = '<div class="empty-msg">Nicio notificare trimisă încă.</div>';
+  const filteredLogs =
+    notifFilterEventId === "ALL"
+      ? state.notificationLogs
+      : state.notificationLogs.filter((entry) => entry.eventId === notifFilterEventId);
+
+  if (filteredLogs.length === 0) {
+    logEl.innerHTML = '<div class="empty-msg">Nicio notificare trimisă pentru evenimentul selectat.</div>';
   } else {
     logEl.innerHTML = "";
-    state.notificationLogs.forEach((entry) => {
+    filteredLogs.forEach((entry) => {
       const div = document.createElement("div");
       div.className = "history-item";
       div.innerHTML = `
@@ -851,22 +938,28 @@ document.getElementById("addSubscriberForm").addEventListener("submit", (e) => {
 
 document.getElementById("sendNotificationForm").addEventListener("submit", (e) => {
   e.preventDefault();
-  const ev = getActiveEvent();
+  const selectedEvId = document.getElementById("notifEventSelect").value || state.activeEventId;
+  const ev = state.events.find((item) => item.id === selectedEvId) || getActiveEvent();
   const message = document.getElementById("notifMessage").value.trim();
   if (!message) return;
 
   const deliveries = state.subscribers.map((s) => `${s.channel} (${s.target}): trimis`);
   state.notificationLogs.unshift({
     id: "n-" + Date.now(),
+    eventId: ev ? ev.id : null,
     time: nowTime(),
     eventTitle: ev ? ev.title : "EventHub",
     message,
     deliveries
   });
+  if (ev) {
+    state.activeEventId = ev.id;
+    notifFilterEventId = ev.id;
+  }
   saveState();
 
   syncOperation("observer", message);
-  renderNotifications();
+  renderAll();
   showToast(`Notificare trimisă către ${state.subscribers.length} destinatari.`);
 });
 
@@ -875,10 +968,29 @@ document.querySelectorAll(".nav-btn").forEach((btn) => {
   btn.addEventListener("click", () => switchView(btn.dataset.view));
 });
 
-document.getElementById("globalEventSelect").addEventListener("change", (e) => {
-  state.activeEventId = e.target.value;
+function setActiveEventAndSync(eventId) {
+  state.activeEventId = eventId;
+  ticketFilterEventId = eventId;
+  notifFilterEventId = eventId;
   saveState();
   renderAll();
+}
+
+["globalEventSelect", "tkEventSelect", "seatEventSelect", "agEventSelect", "notifEventSelect"].forEach((id) => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener("change", (e) => setActiveEventAndSync(e.target.value));
+  }
+});
+
+document.getElementById("ticketFilterEvent").addEventListener("change", (e) => {
+  ticketFilterEventId = e.target.value;
+  renderTicketsList();
+});
+
+document.getElementById("notifFilterEvent").addEventListener("change", (e) => {
+  notifFilterEventId = e.target.value;
+  renderNotifications();
 });
 
 // Init

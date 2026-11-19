@@ -244,6 +244,7 @@ body {
 }
 
 .active-event-picker select {
+  width: auto;
   padding: 8px 12px;
   border-radius: 9px;
   border: 1px solid var(--border);
@@ -374,14 +375,15 @@ body {
 /* Forms */
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 13px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+  min-width: 0;
 }
 
 .form-group.full {
@@ -400,7 +402,10 @@ input[type="date"],
 input[type="search"],
 select,
 textarea {
-  padding: 9px 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.88rem;
@@ -437,11 +442,17 @@ textarea:focus {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .form-inline-row input {
   flex: 1;
   min-width: 150px;
+}
+
+.form-inline-row select {
+  width: auto;
+  flex-shrink: 0;
 }
 
 /* Buttons */
@@ -509,11 +520,17 @@ textarea:focus {
   gap: 10px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .toolbar-inline input {
   flex: 1;
   min-width: 180px;
+}
+
+.toolbar-inline select {
+  width: auto;
+  flex-shrink: 0;
 }
 
 .events-grid {
@@ -601,66 +618,103 @@ textarea:focus {
 
 /* Tickets & Addons */
 .addon-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
 .addon-option {
   border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 10px;
+  border-radius: 10px;
+  padding: 11px 14px;
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   cursor: pointer;
   background: var(--surface-subtle);
-  font-size: 0.8rem;
-  transition: border-color 0.15s ease;
+  font-size: 0.85rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .addon-option:hover {
   border-color: var(--accent);
+  background: #f8faff;
 }
 
-.addon-option small {
-  display: block;
-  margin-top: 2px;
-  color: var(--accent);
+.addon-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.addon-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.addon-left input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.addon-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.addon-price {
+  font-size: 0.82rem;
   font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .price-preview-box {
+  display: flex;
   flex-direction: row !important;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   background: var(--surface-subtle);
   border: 1px solid var(--border);
   border-radius: 11px;
   padding: 14px 16px;
 }
 
+.price-preview-info {
+  min-width: 0;
+  flex: 1;
+}
+
 .muted-label {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-weight: 700;
   display: block;
 }
 
 .price-breakdown {
   font-size: 0.8rem;
   color: var(--text-secondary);
-  margin-top: 2px;
+  margin-top: 3px;
+  line-height: 1.4;
 }
 
 .price-big {
-  font-size: 1.32rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: var(--text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tickets-list {
