@@ -92,6 +92,7 @@ function createDefaultState() {
         eventTitle: "Moldova Tech Summit 2026",
         eventCode: "CONF-2026",
         hall: "Palatul Republicii",
+        seat: "A1",
         guest: "Elena Moraru",
         tier: "vip",
         ticketLabel: "Bilet VIP (Rândul 1 + Lounge)",
@@ -275,6 +276,36 @@ function populateEventSelect(selectEl, selectedId, includeAllOption = false) {
   });
 }
 
+function populateAvailableSeatsSelect(selectEl, ev) {
+  if (!selectEl) return;
+  selectEl.innerHTML = "";
+  const taken = ev && Array.isArray(ev.reservedSeats) ? ev.reservedSeats : [];
+  const available = [];
+  SEAT_ROWS.forEach((row) => {
+    SEAT_COLS.forEach((col) => {
+      const code = `${row}${col}`;
+      if (!taken.includes(code)) available.push(code);
+    });
+  });
+
+  if (available.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Nu mai sunt locuri disponibile în sală";
+    selectEl.appendChild(opt);
+    selectEl.disabled = true;
+    return;
+  }
+
+  selectEl.disabled = false;
+  available.forEach((code) => {
+    const opt = document.createElement("option");
+    opt.value = code;
+    opt.textContent = `Locul ${code}`;
+    selectEl.appendChild(opt);
+  });
+}
+
 function renderGlobalPicker() {
   populateEventSelect(document.getElementById("globalEventSelect"), state.activeEventId);
   populateEventSelect(document.getElementById("tkEventSelect"), state.activeEventId);
@@ -294,6 +325,7 @@ function renderGlobalPicker() {
   const activeEv = getActiveEvent();
   populateHallSelect(document.getElementById("tkHall"), activeEv);
   populateHallSelect(document.getElementById("agSessionHall"), activeEv);
+  populateAvailableSeatsSelect(document.getElementById("tkSeatSelect"), activeEv);
 }
 
 function renderKPIs() {
@@ -610,6 +642,12 @@ document.getElementById("issueTicketForm").addEventListener("submit", (e) => {
   if (!ev) return;
 
   const hall = document.getElementById("tkHall").value || ev.hall;
+  const seat = document.getElementById("tkSeatSelect").value;
+  if (!seat) {
+    showToast("Nu mai sunt locuri disponibile în sală pentru acest eveniment.");
+    return;
+  }
+
   const guest = document.getElementById("tkGuest").value.trim();
   const tier = document.getElementById("tkTier").value;
   const q = computeTicketQuote();
@@ -621,6 +659,7 @@ document.getElementById("issueTicketForm").addEventListener("submit", (e) => {
     eventTitle: ev.title,
     eventCode: ev.code,
     hall,
+    seat,
     guest,
     tier,
     ticketLabel: isVip ? "Bilet VIP (Rândul 1 + Lounge)" : "Bilet Standard (Acces General)",
@@ -631,6 +670,11 @@ document.getElementById("issueTicketForm").addEventListener("submit", (e) => {
     legacyReceipt: null
   };
 
+  if (!ev.reservedSeats.includes(seat)) {
+    ev.reservedSeats.push(seat);
+    ev.seatHistory.push({ action: "REZERVARE", seat, time: nowTime() });
+  }
+
   state.tickets.unshift(ticketObj);
   state.activeEventId = ev.id;
   ticketFilterEventId = ev.id;
@@ -638,6 +682,7 @@ document.getElementById("issueTicketForm").addEventListener("submit", (e) => {
 
   syncOperation("abstract-factory", `${tier}:${guest}`);
   syncOperation("strategy", `${q.strategyKey}:${q.base}`);
+  syncOperation("command", seat);
   const addonTokens = [
     document.getElementById("addonBackstage").checked ? "backstage" : "",
     document.getElementById("addonDinner").checked ? "dinner" : "",
@@ -649,7 +694,7 @@ document.getElementById("issueTicketForm").addEventListener("submit", (e) => {
 
   document.getElementById("tkGuest").value = "";
   renderAll();
-  showToast(`Bilet emis pentru ${guest} — ${formatMdl(q.total)}.`);
+  showToast(`Bilet emis pentru ${guest} (Locul ${seat}) — ${formatMdl(q.total)}.`);
 });
 
 function renderTicketsList() {
@@ -674,7 +719,7 @@ function renderTicketsList() {
         <span class="badge-total">${formatMdl(tk.totalPrice)}</span>
       </div>
       <div class="ticket-details">
-        <div><strong>Sală:</strong> ${escapeHtml(tk.hall || "Sala principală")}</div>
+        <div><strong>Sală:</strong> ${escapeHtml(tk.hall || "Sala principală")} • <strong>Loc:</strong> ${escapeHtml(tk.seat || "Nealocat")}</div>
         <div><strong>Pachet:</strong> ${escapeHtml(tk.ticketLabel)} • ${escapeHtml(tk.badgeLabel)}</div>
         <div><strong>Tarif:</strong> ${escapeHtml(tk.strategyLabel)} • <strong>Extraopțiuni:</strong> ${
           tk.addons.length ? escapeHtml(tk.addons.join(", ")) : "Niciuna"
